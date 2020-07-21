@@ -2,6 +2,7 @@ import { contractFactory } from '@devprtcl/dev-kit-js'
 import { getAccountAddress } from 'src/fixtures/wallet/utility'
 import { getContractAddress } from './get-contract-address'
 import { client as devClient } from '@devprtcl/dev-kit-js'
+import PQueue from 'p-queue'
 
 const newClient = () => {
   const { ethereum } = window
@@ -11,10 +12,14 @@ const newClient = () => {
   return undefined
 }
 
+const queue = new PQueue({ concurrency: 9 })
+
 export const getRewardsAmount = async (propertyAddress: string) => {
   const client = newClient()
   if (client) {
-    return client.withdraw(await getContractAddress(client, 'withdraw')).getRewardsAmount(propertyAddress)
+    return queue.add(async () =>
+      client.withdraw(await getContractAddress(client, 'withdraw')).getRewardsAmount(propertyAddress)
+    )
   }
   return undefined
 }
@@ -22,7 +27,9 @@ export const getRewardsAmount = async (propertyAddress: string) => {
 export const getTotalStakingAmount = async (proepertyAddress: string) => {
   const client = newClient()
   if (client) {
-    return client.lockup(await getContractAddress(client, 'lockup')).getPropertyValue(proepertyAddress)
+    return queue.add(async () =>
+      client.lockup(await getContractAddress(client, 'lockup')).getPropertyValue(proepertyAddress)
+    )
   }
   return undefined
 }
@@ -30,7 +37,7 @@ export const getTotalStakingAmount = async (proepertyAddress: string) => {
 export const getTotalStakingAmountOnProtocol = async () => {
   const client = newClient()
   if (client) {
-    return client.lockup(await getContractAddress(client, 'lockup')).getAllValue()
+    return queue.add(async () => client.lockup(await getContractAddress(client, 'lockup')).getAllValue())
   }
   return undefined
 }
@@ -39,9 +46,11 @@ export const getMyHolderAmount = async (propertyAddress: string) => {
   const client = newClient()
   const accountAddress = await getAccountAddress()
   if (client && accountAddress) {
-    return client
-      .withdraw(await getContractAddress(client, 'withdraw'))
-      .calculateWithdrawableAmount(propertyAddress, accountAddress)
+    return queue.add(async () =>
+      client
+        .withdraw(await getContractAddress(client, 'withdraw'))
+        .calculateWithdrawableAmount(propertyAddress, accountAddress)
+    )
   }
   return undefined
 }
@@ -50,9 +59,11 @@ export const getMyStakingRewardAmount = async (propertyAddress: string) => {
   const client = newClient()
   const accountAddress = await getAccountAddress()
   if (client && accountAddress) {
-    return client
-      .lockup(await getContractAddress(client, 'lockup'))
-      .calculateWithdrawableInterestAmount(propertyAddress, accountAddress)
+    return queue.add(async () =>
+      client
+        .lockup(await getContractAddress(client, 'lockup'))
+        .calculateWithdrawableInterestAmount(propertyAddress, accountAddress)
+    )
   }
   return undefined
 }
@@ -61,7 +72,9 @@ export const getMyStakingAmount = async (propertyAddress: string) => {
   const client = newClient()
   const accountAddress = await getAccountAddress()
   if (client && accountAddress) {
-    return client.lockup(await getContractAddress(client, 'lockup')).getValue(propertyAddress, accountAddress)
+    return queue.add(async () =>
+      client.lockup(await getContractAddress(client, 'lockup')).getValue(propertyAddress, accountAddress)
+    )
   }
   return undefined
 }
@@ -100,10 +113,12 @@ export const getWithdrawalStatus = async (propertyAddress: string) => {
   const client = newClient()
   const accountAddress = await getAccountAddress()
   if (client && accountAddress) {
-    return client
-      .lockup(await getContractAddress(client, 'lockup'))
-      .getStorageWithdrawalStatus(propertyAddress, accountAddress)
-      .then(Number)
+    return queue.add(async () =>
+      client
+        .lockup(await getContractAddress(client, 'lockup'))
+        .getStorageWithdrawalStatus(propertyAddress, accountAddress)
+        .then(Number)
+    )
   }
   return undefined
 }
@@ -111,7 +126,9 @@ export const getWithdrawalStatus = async (propertyAddress: string) => {
 export const calculateMaxRewardsPerBlock = async () => {
   const client = newClient()
   if (client) {
-    return client.allocator(await getContractAddress(client, 'allocator')).calculateMaxRewardsPerBlock()
+    return queue.add(async () =>
+      client.allocator(await getContractAddress(client, 'allocator')).calculateMaxRewardsPerBlock()
+    )
   }
   return undefined
 }
@@ -130,7 +147,7 @@ export const createProperty = async (name: string, symbol: string, author: strin
 export const marketScheme = async (marketAddress: string) => {
   const client = newClient()
   if (client) {
-    return client.market(marketAddress).schema()
+    return queue.add(async () => client.market(marketAddress).schema())
   }
   return []
 }
@@ -152,7 +169,7 @@ export const authenticate = async (marketAddress: string, propertyAddress: strin
 export const totalSupply = async () => {
   const client = newClient()
   if (client) {
-    return client.dev(await getContractAddress(client, 'token')).totalSupply()
+    return queue.add(async () => client.dev(await getContractAddress(client, 'token')).totalSupply())
   }
   return undefined
 }
@@ -160,7 +177,9 @@ export const totalSupply = async () => {
 export const holdersShare = async (amount: string, lockedups: string) => {
   const client = newClient()
   if (client) {
-    return client.policy(await getContractAddress(client, 'policy')).holdersShare(amount, lockedups)
+    return queue.add(async () =>
+      client.policy(await getContractAddress(client, 'policy')).holdersShare(amount, lockedups)
+    )
   }
   return undefined
 }
@@ -170,8 +189,8 @@ export const createGetVotablePolicy = async () => {
   if (client) {
     const policySet = client.policySet(await getContractAddress(client, 'policySet'))
     const [policies, currentPolicy] = await Promise.all([
-      devClient.createGetVotablePolicy(policySet)(),
-      getContractAddress(client, 'policy')
+      queue.add(() => devClient.createGetVotablePolicy(policySet)()),
+      queue.add(() => getContractAddress(client, 'policy'))
     ])
     return policies.filter(p => p !== currentPolicy)
   }
