@@ -8,17 +8,19 @@ import { useRouter } from 'next/router'
 interface Props {
   currentPage: number
   searchWord: string
+  market: string
 }
 
 const DEFAULT_PER_PAGE = 10
 
-export const PropertyCardList = ({ currentPage, searchWord }: Props) => {
+export const PropertyCardList = ({ currentPage, searchWord, market }: Props) => {
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE)
   const { data, loading } = useListPropertyQuery({
     variables: {
       limit: perPage,
       offset: (currentPage - 1) * perPage,
-      ilike: searchWord !== '' ? `%${searchWord}%` : undefined
+      ilike: searchWord !== '' ? `%${searchWord}%` : undefined,
+      market: market !== '' ? market : undefined
     }
   })
   const router = useRouter()
@@ -30,7 +32,12 @@ export const PropertyCardList = ({ currentPage, searchWord }: Props) => {
     [router, searchWord]
   )
   const handleShowSizeChange = (_: number, pageSize: number) => setPerPage(pageSize)
-  const handleSearch = useCallback((word: string) => router.push({ pathname: '/', query: { word } }), [router])
+  const handleSearch = useCallback(
+    (word: string, market?: string) => {
+      router.push({ pathname: '/', query: { word: word || '', market: market || '' } })
+    },
+    [router]
+  )
 
   return (
     <div>

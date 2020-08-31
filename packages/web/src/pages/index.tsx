@@ -28,6 +28,13 @@ const Index = (_: Props) => {
     }
     return ''
   }, [router])
+  const market = useMemo(() => {
+    const { market: marketStr } = router.query
+    if (typeof marketStr === 'string') {
+      return marketStr
+    }
+    return ''
+  }, [router])
 
   return (
     <>
@@ -35,7 +42,7 @@ const Index = (_: Props) => {
       <MainHeader />
       <div style={{ padding: '1rem', maxWidth: '1048px', marginRight: 'auto', marginLeft: 'auto' }}>
         <SupplySummaly apy={apy} creators={creators} annualSupplyGrowthRatio={annualSupplyGrowthRatio}></SupplySummaly>
-        <PropertyCardList currentPage={page} searchWord={word} />
+        <PropertyCardList currentPage={page} searchWord={word} market={market} />
       </div>
       <Footer />
     </>

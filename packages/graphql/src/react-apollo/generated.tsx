@@ -5081,6 +5081,7 @@ export type ListPropertyQueryVariables = Exact<{
   limit?: Maybe<Scalars['Int']>
   offset?: Maybe<Scalars['Int']>
   ilike?: Maybe<Scalars['String']>
+  market?: Maybe<Scalars['String']>
 }>
 
 export type ListPropertyQuery = { __typename?: 'query_root' } & {
@@ -5216,16 +5217,18 @@ export type GetPropertyAuthenticationQueryResult = ApolloReactCommon.QueryResult
   GetPropertyAuthenticationQueryVariables
 >
 export const ListPropertyDocument = gql`
-  query ListProperty($limit: Int, $offset: Int, $ilike: String) {
+  query ListProperty($limit: Int, $offset: Int, $ilike: String, $market: String) {
     property_factory_create(
       limit: $limit
       offset: $offset
       order_by: { current_lockup: { sum_values: desc_nulls_last } }
-      where: { authentication: { authentication_id: { _ilike: $ilike } } }
+      where: { authentication: { authentication_id: { _ilike: $ilike }, market: { _eq: $market } } }
     ) {
       ...propertyFactoryCreate
     }
-    property_factory_create_aggregate(where: { authentication: { authentication_id: { _ilike: $ilike } } }) {
+    property_factory_create_aggregate(
+      where: { authentication: { authentication_id: { _ilike: $ilike }, market: { _eq: $market } } }
+    ) {
       aggregate {
         count
       }
@@ -5249,6 +5252,7 @@ export const ListPropertyDocument = gql`
  *      limit: // value for 'limit'
  *      offset: // value for 'offset'
  *      ilike: // value for 'ilike'
+ *      market: // value for 'market'
  *   },
  * });
  */
