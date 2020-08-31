@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react'
 import Link from 'next/link'
-import { Row, Col, Statistic } from 'antd'
+import { Row, Col, Statistic, Tag } from 'antd'
 import { useGetTotalRewardsAmount, useStakingShare, useGetMyStakingAmount } from 'src/fixtures/dev-kit/hooks'
 import { truncate } from 'src/fixtures/utility/string'
+import { useGetMarketInformation } from 'src/fixtures/github/hooks'
 import { useGetPropertyAuthenticationQuery } from '@dev/graphql'
 import { CircleGraph } from 'src/components/atoms/CircleGraph'
 import styled from 'styled-components'
@@ -52,6 +53,11 @@ const AssetStrength = ({ property }: { property: string }) => {
   return <AssetStrengthBase assetStrength={assetStrength} />
 }
 
+const MarketTag = ({ marketAddress }: { marketAddress: string }) => {
+  const { data } = useGetMarketInformation(marketAddress)
+  return data ? <Tag>{data.name}</Tag> : <></>
+}
+
 export const PropertyCard = ({ propertyAddress }: Props) => {
   const { totalRewardsAmount } = useGetTotalRewardsAmount(propertyAddress)
   const { data } = useGetPropertyAuthenticationQuery({ variables: { propertyAddress } })
@@ -59,6 +65,7 @@ export const PropertyCard = ({ propertyAddress }: Props) => {
     () => data && truncate(data.property_authentication.map(e => e.authentication_id).join(', '), 24),
     [data]
   )
+  const marketList = useMemo(() => (data && data.property_authentication.map(p => p.market)) || [], [data])
   const { myStakingAmount } = useGetMyStakingAmount(propertyAddress)
 
   return (
@@ -67,6 +74,11 @@ export const PropertyCard = ({ propertyAddress }: Props) => {
         <Row>
           <Col sm={24} md={10}>
             <StatisticWithLineBreakedTitle title={propertyAddress} value={includeAssets} />
+            {marketList.map((market: any) => (
+              <div key={market}>
+                <MarketTag marketAddress={market || ''} />
+              </div>
+            ))}
           </Col>
           <ResponsiveCol sm={24} md={14}>
             <ResponsiveRow>

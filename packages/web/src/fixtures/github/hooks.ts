@@ -30,8 +30,9 @@ const getPolicyInformation = (policyAddress: string): Promise<PolicyInformation>
   )
 
 export const useGetMarketInformation = (marketAddress: string) => {
+  const shouldFetch = marketAddress !== ''
   const { data, error } = useSWR<UnwrapFunc<typeof getMarketInformation>, Error>(
-    SWRCachePath.getMarketInformation(marketAddress),
+    shouldFetch ? SWRCachePath.getMarketInformation(marketAddress) : null,
     () => getMarketInformation(marketAddress),
     { onError: err => message.error(err.message) }
   )
