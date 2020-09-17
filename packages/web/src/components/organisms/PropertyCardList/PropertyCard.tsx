@@ -55,7 +55,7 @@ const AssetStrength = ({ property }: { property: string }) => {
 
 const MarketTag = ({ marketAddress }: { marketAddress: string }) => {
   const { data } = useGetMarketInformation(marketAddress)
-  return data ? <Tag>{data.name}</Tag> : <></>
+  return data && data.name ? <Tag>{data.name}</Tag> : <></>
 }
 
 export const PropertyCard = ({ propertyAddress }: Props) => {
@@ -75,9 +75,7 @@ export const PropertyCard = ({ propertyAddress }: Props) => {
           <Col sm={24} md={10}>
             <StatisticWithLineBreakedTitle title={propertyAddress} value={includeAssets} />
             {marketList.map((market: any) => (
-              <div key={market}>
-                <MarketTag marketAddress={market || ''} />
-              </div>
+              <MarketTag key={market} marketAddress={market || ''} />
             ))}
           </Col>
           <ResponsiveCol sm={24} md={14}>
