@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button, Col, Row, Form, Input, Select } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
-import { useGetMarketFactoryCreateQuery } from '@dev/graphql'
+// import { useGetMarketFactoryCreateQuery } from '@dev/graphql'
 import { useGetMarketInformation } from 'src/fixtures/github/hooks'
 
 interface Props {
@@ -14,16 +14,22 @@ const formLayout = {
 
 const MarketSelectFormItem = ({ marketAddress }: { marketAddress: string }) => {
   const { data } = useGetMarketInformation(marketAddress)
-  return data ? <span>{data.name}</span> : <span>{marketAddress}</span>
+  return data && data.name ? <span>{data.name}</span> : <></>
 }
 
 const MarketSelectForm = () => {
-  // TODO: use valid market list
-  const { data } = useGetMarketFactoryCreateQuery()
+  // TODO: use valid market list via other data source
+  // const { data } = useGetMarketFactoryCreateQuery()
+  const data = {
+    market_factory_create: [
+      { market: '0x88c7B1f41DdE50efFc25541a2E0769B887eB2ee7' },
+      { market: '0x34A7AdC94C4D41C3e3469F98033B372cB2fAf318' }
+    ]
+  }
   return (
     <Form.Item name="market" label="market">
       <Select placeholder="Select a market" allowClear>
-        {data?.market_factory_create.map(({ market }) => (
+        {data?.market_factory_create.map(({ market }: { market: string }) => (
           <Select.Option key={market} value={market}>
             <MarketSelectFormItem marketAddress={market} />
           </Select.Option>
