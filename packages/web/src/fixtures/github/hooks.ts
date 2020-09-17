@@ -24,9 +24,13 @@ const getMarkets = (key = 'trusted'): Promise<Markets> =>
   fetch(`https://raw.githubusercontent.com/dev-protocol/assets/main/markets/${key}.json`).then(res => res.json())
 
 const getMarketInformation = (marketAddress: string): Promise<MarketInformation> =>
-  fetch(`https://raw.githubusercontent.com/dev-protocol/assets/main/market/${marketAddress}/info.json`).then(res =>
-    res.json()
-  )
+  fetch(`https://raw.githubusercontent.com/dev-protocol/assets/main/market/${marketAddress}/info.json`).then(res => {
+    if (res.status === 404) {
+      return {} as MarketInformation
+    } else {
+      return res.json()
+    }
+  })
 
 const getPolicyInformation = (policyAddress: string): Promise<PolicyInformation> =>
   fetch(`https://raw.githubusercontent.com/dev-protocol/assets/main/policy/${policyAddress}/info.json`).then(res =>
